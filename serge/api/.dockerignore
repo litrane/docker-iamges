@@ -1,0 +1,2 @@
+./weights/*.bin**
+./weights/*.gguf**
