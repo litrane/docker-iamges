@@ -124,3 +124,65 @@ spec:
           ports:
             - containerPort: 8008
 ```
+
+# FastChat
+
+FastChat is an open platform designed for training, serving, and evaluating large language model-based chatbots. It has successfully served over 6 million chat requests for more than 50 LLMs. FastChat features both a `gradio_web_server` and an `openai_api_server`.
+
+## Usage
+
+### 1. Create Docker Images
+
+To build the Docker image, run the following command at FastChat/docker/:
+
+```bash
+docker build -f Dockerfile -t fastchat .
+```
+
+### 2. Run the Docker Container
+
+Execute the Docker container with the following command:
+
+```bash
+docker run -it --gpus all -p 8000:8000 -p 7860:7860 -p 21001:21001 -v /root/.cache/huggingface/hub/:/root/.cache/huggingface/hub/ fastchat /bin/bash
+```
+
+### 3. Run the FastChat Server
+
+First, log into the container:
+
+```bash
+docker exec -it fastchat /bin/bash
+```
+
+Then, start the server by running the following commands:
+
+```bash
+python3.9 -m fastchat.serve.model_worker --model-path lmsys/vicuna-7b-v1.5
+python3.9 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 8000
+python3.9 -m fastchat.serve.controller --host 127.0.0.1 --port 21001
+python3.9 -m fastchat.serve.gradio_web_server --host 127.0.0.1 --port 7860
+```
+
+If you encounter an error with `python3.9 -m fastchat.serve.model_worker --model-path lmsys/vicuna-7b-v1.5`, try the alternative command:
+
+```bash
+python3.9 -m fastchat.serve.model_worker --model-path lmsys/vicuna-7b-v1.5 --host 127.0.0.1 --port 21002
+```
+
+### Using VLLM
+
+To use VLLM, replace the `model_worker` command with:
+
+```bash
+python3.9 -m fastchat.serve.vllm_worker --model-path lmsys/fastchat-t5-3b-v1.0
+```
+
+### Potential Issues
+
+FastChat may fail on machines with a GPU such as the Tesla T4 or if there is insufficient memory.
+
+## To-Do
+
+- Package into Kubernetes Docker images.
+- Modify the Dockerfile accordingly.
